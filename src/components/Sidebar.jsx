@@ -2,7 +2,7 @@
 // src/components/Sidebar.jsx
 // ============================================
 
-export function Sidebar({ activeTab, setActiveTab, accessibility, setAccessibility }) {
+export function Sidebar({ activeTab, setActiveTab, accessibility, setAccessibility, userRole }) {
   const speak = (text) => {
     if (accessibility.voiceEnabled && 'speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
@@ -10,12 +10,23 @@ export function Sidebar({ activeTab, setActiveTab, accessibility, setAccessibili
     }
   };
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'speedometer2' },
-    { id: 'exercises', label: 'My Exercises', icon: 'bicycle' },
-    { id: 'health', label: 'Health Metrics', icon: 'heart-pulse' },
-    { id: 'education', label: 'Education', icon: 'book' }
-  ];
+  // Different menu items based on role
+  const getMenuItems = () => {
+    const baseItems = [
+      { id: 'dashboard', label: 'Dashboard', icon: 'speedometer2' },
+      { id: 'exercises', label: 'Exercises', icon: 'bicycle' },
+      { id: 'education', label: 'Education', icon: 'book' }
+    ];
+
+    // Add Health Metrics only for PWD
+    if (userRole === 'PWD') {
+      baseItems.splice(2, 0, { id: 'health', label: 'Health Metrics', icon: 'heart-pulse' });
+    }
+
+    return baseItems;
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <div className={`card ${accessibility.highContrast ? 'bg-dark border-warning' : ''}`}>

@@ -47,5 +47,4 @@ export function Navbar({ user, onLogout, accessibility }) {
     </nav>
   );
 }
-
 export default Navbar;

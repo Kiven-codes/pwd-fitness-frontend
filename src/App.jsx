@@ -5,6 +5,8 @@
 import { useState, useEffect } from 'react';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
+import TherapistDashboard from './components/TherapistDashboard';
+import AdminDashboard from './components/AdminDashboard';
 import ExercisesPage from './components/ExercisesPage';
 import HealthMetricsPage from './components/HealthMetricsPage';
 import EducationPage from './components/EducationPage';
@@ -37,40 +39,29 @@ function App() {
   });
 
   // Check for saved user session on mount
- useEffect(() => {
-  const savedUser = localStorage.getItem('currentUser');
-  if (!savedUser) return;
+  useEffect(() => {
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      setUser(userData);
+      setIsAuthenticated(true);
+      loadDashboardData(userData.id);
+    }
+  }, []);
 
-  const userData = JSON.parse(savedUser);
-
-  if (userData?.id) {
-    setUser(userData);
-    setIsAuthenticated(true);
-    loadDashboardData(userData.id);
-  } else {
-    localStorage.removeItem('currentUser'); // 🧹 clean bad data
-  }
-}, []);
-
-
-// Load all dashboard data
-const loadDashboardData = async (userId) => {
-  if (!userId) {
-    console.warn('loadDashboardData called with invalid userId:', userId);
-    return;
-  }
-
-  try {
-    const data = await loadUserData(userId);
-    setExercises(data.exercises || []);
-    setAssignments(data.assignments || []);
-    setWeeklyStats(data.weeklyStats || {});
-    setHealthMetrics(data.healthMetrics || []);
-    setEducation(data.education || []);
-  } catch (error) {
-    console.error('Error loading dashboard data:', error);
-  }
-};
+  // Load all dashboard data
+  const loadDashboardData = async (userId) => {
+    try {
+      const data = await loadUserData(userId);
+      setExercises(data.exercises || []);
+      setAssignments(data.assignments || []);
+      setWeeklyStats(data.weeklyStats || {});
+      setHealthMetrics(data.healthMetrics || []);
+      setEducation(data.education || []);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  };
 
   const handleLoginSuccess = (userData) => {
     setUser(userData);
@@ -86,12 +77,11 @@ const loadDashboardData = async (userId) => {
     setActiveTab('dashboard');
   };
 
- const refreshData = () => {
-  if (!user?.id) return;
-  loadDashboardData(user.id);
-};
-
-
+  const refreshData = () => {
+    if (user) {
+      loadDashboardData(user.id);
+    }
+  };
 
   // If not authenticated, show login page
   if (!isAuthenticated) {
@@ -125,14 +115,33 @@ const loadDashboardData = async (userId) => {
           </div>
 
           <div className="col-md-9 col-lg-10">
+            {/* Role-based Dashboard */}
             {activeTab === 'dashboard' && (
-              <Dashboard
-                user={user}
-                weeklyStats={weeklyStats}
-                assignments={assignments}
-                accessibility={accessibility}
-                onRefresh={refreshData}
-              />
+              <>
+                {user.role === 'PWD' && (
+                  <Dashboard
+                    user={user}
+                    weeklyStats={weeklyStats}
+                    assignments={assignments}
+                    accessibility={accessibility}
+                    onRefresh={refreshData}
+                  />
+                )}
+                
+                {(user.role === 'THERAPIST' || user.role === 'CAREGIVER') && (
+                  <TherapistDashboard
+                    user={user}
+                    accessibility={accessibility}
+                  />
+                )}
+                
+                {user.role === 'ADMIN' && (
+                  <AdminDashboard
+                    user={user}
+                    accessibility={accessibility}
+                  />
+                )}
+              </>
             )}
 
             {activeTab === 'exercises' && (
@@ -142,7 +151,7 @@ const loadDashboardData = async (userId) => {
               />
             )}
 
-            {activeTab === 'health' && (
+            {activeTab === 'health' && user.role === 'PWD' && (
               <HealthMetricsPage
                 user={user}
                 healthMetrics={healthMetrics}
