@@ -84,6 +84,9 @@ function LoginPage({ onLoginSuccess, accessibility, setAccessibility }) {
                   <p className={accessibility.largeText ? 'lead fs-4' : 'lead'}>
                     Health & Fitness Tracking System
                   </p>
+                  <p className="text-muted mt-2" style={{ fontSize: accessibility.largeText ? '1.2rem' : '0.9rem' }}>
+                    Note: For PC and laptop only
+                  </p>
                 </div>
 
                 {/* Error Alert */}

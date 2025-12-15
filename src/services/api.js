@@ -1,9 +1,5 @@
 const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
-// ============================================
-// SAFE FETCH (FIXED — READS BODY ONLY ONCE)
-// ============================================
-
 export const safeFetch = async (url, options = {}) => {
   const response = await fetch(url, options);
 
