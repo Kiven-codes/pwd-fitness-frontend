@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://api-app-8efk.onrender.com';
+const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
 // ============================================
 // SAFE FETCH
