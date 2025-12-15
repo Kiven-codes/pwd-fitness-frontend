@@ -1,7 +1,3 @@
-// ============================================
-// src/App.jsx - Main Application Component
-// ============================================
-
 import { useState, useEffect } from 'react';
 import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
@@ -38,7 +34,6 @@ function App() {
     voiceEnabled: false
   });
 
-  // Check for saved user session on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -49,7 +44,6 @@ function App() {
     }
   }, []);
 
-  // Load all dashboard data
   const loadDashboardData = async (userId) => {
     try {
       const data = await loadUserData(userId);
@@ -83,7 +77,6 @@ function App() {
     }
   };
 
-  // If not authenticated, show login page
   if (!isAuthenticated) {
     return (
       <LoginPage 
@@ -94,7 +87,6 @@ function App() {
     );
   }
 
-  // Main application view
   return (
     <div className={`min-vh-100 ${accessibility.highContrast ? 'bg-dark text-warning' : 'bg-light'}`}>
       <Navbar 
@@ -148,6 +140,8 @@ function App() {
               <ExercisesPage
                 exercises={exercises}
                 accessibility={accessibility}
+                user={user} // <-- pass user to know admin role
+                refreshData={refreshData} // <-- refresh after edit/delete
               />
             )}
 
