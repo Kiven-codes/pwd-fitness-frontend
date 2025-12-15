@@ -1,7 +1,3 @@
-// ============================================
-// src/components/Navbar.jsx
-// ============================================
-
 export function Navbar({ user, onLogout, accessibility }) {
   return (
     <nav className={`navbar navbar-expand-lg shadow-sm ${

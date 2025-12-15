@@ -1,7 +1,3 @@
-// ============================================
-// src/components/HealthMetricsPage.jsx
-// ============================================
-
 import { addHealthMetric } from '../services/api';
 
 export function HealthMetricsPage({ user, healthMetrics, accessibility, onRefresh }) {

@@ -1,7 +1,3 @@
-// ============================================
-// src/components/EducationPage.jsx
-// ============================================
-
 export function EducationPage({ education, accessibility }) {
   const getCategoryBadge = (category) => {
     const badges = {

@@ -1,7 +1,3 @@
-// ============================================
-// src/components/ExercisesPage.jsx
-// ============================================
-
 export function ExercisesPage({ exercises, accessibility }) {
   return (
     <div>

@@ -1,7 +1,3 @@
-// ============================================
-// src/components/Dashboard.jsx
-// ============================================
-
 import { logProgress } from '../services/api';
 
 function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh }) {

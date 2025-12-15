@@ -1,7 +1,3 @@
-// ============================================
-// src/components/Sidebar.jsx
-// ============================================
-
 export function Sidebar({ activeTab, setActiveTab, accessibility, setAccessibility, userRole }) {
   const speak = (text) => {
     if (accessibility.voiceEnabled && 'speechSynthesis' in window) {

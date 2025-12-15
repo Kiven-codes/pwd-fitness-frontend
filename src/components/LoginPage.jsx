@@ -1,7 +1,3 @@
-// ============================================
-// src/components/LoginPage.jsx
-// ============================================
-
 import { useState } from 'react';
 import { login, register } from '../services/api';
 
