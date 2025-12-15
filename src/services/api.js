@@ -1,22 +1,29 @@
 const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
 // ============================================
-// SAFE FETCH
+// SAFE FETCH (FIXED — READS BODY ONLY ONCE)
 // ============================================
 
 export const safeFetch = async (url, options = {}) => {
   const response = await fetch(url, options);
 
-  // Try parsing JSON, fallback to text for error messages
+  const contentType = response.headers.get('content-type');
   let data;
-  try {
+
+  if (contentType && contentType.includes('application/json')) {
     data = await response.json();
-  } catch {
-    const text = await response.text();
-    throw new Error(`Invalid JSON response: ${text}`);
+  } else {
+    data = await response.text();
   }
 
-  if (!response.ok) throw new Error(data.error || 'Request failed');
+  if (!response.ok) {
+    throw new Error(
+      typeof data === 'string'
+        ? data
+        : data?.error || data?.message || `Request failed (${response.status})`
+    );
+  }
+
   return data;
 };
 
@@ -31,24 +38,26 @@ export const login = async (username, password) => {
     body: JSON.stringify({ username, password })
   });
 
-  if (!data?.user?.id) throw new Error('Invalid user data returned from server');
+  if (!data?.user?.id) throw new Error('Invalid user data returned');
   return data.user;
 };
 
-export const register = async (userData) => {
-  return safeFetch(`${API_BASE_URL}/auth/register`, {
+export const register = async (userData) =>
+  safeFetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData)
   });
-};
 
 // ============================================
 // EXERCISES
 // ============================================
 
-export const getExercises = async () => safeFetch(`${API_BASE_URL}/exercises`);
-export const getExerciseById = async (id) => safeFetch(`${API_BASE_URL}/exercises/${id}`);
+export const getExercises = async () =>
+  safeFetch(`${API_BASE_URL}/exercises`);
+
+export const getExerciseById = async (id) =>
+  safeFetch(`${API_BASE_URL}/exercises/${id}`);
 
 // ============================================
 // ASSIGNMENTS
@@ -56,15 +65,23 @@ export const getExerciseById = async (id) => safeFetch(`${API_BASE_URL}/exercise
 
 export const getUserAssignments = async (userId, status = 'Active') => {
   if (!userId) return [];
-  return safeFetch(`${API_BASE_URL}/assignments/user/${userId}?status=${status}`);
+  return safeFetch(
+    `${API_BASE_URL}/assignments/user/${userId}?status=${status}`
+  );
 };
 
 // ============================================
 // PROGRESS TRACKING
 // ============================================
 
-export const logProgress = async (assignmentId, duration, calories, score, remarks = '') => {
-  return safeFetch(`${API_BASE_URL}/progress`, {
+export const logProgress = async (
+  assignmentId,
+  duration,
+  calories,
+  score,
+  remarks = ''
+) =>
+  safeFetch(`${API_BASE_URL}/progress`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -75,7 +92,6 @@ export const logProgress = async (assignmentId, duration, calories, score, remar
       remarks
     })
   });
-};
 
 export const getWeeklyProgress = async (userId) => {
   if (!userId) return {};
@@ -93,45 +109,45 @@ export const getProgressSummary = async (userId) => {
 
 export const getHealthMetrics = async (userId, limit = 5) => {
   if (!userId) return [];
-  return safeFetch(`${API_BASE_URL}/health-metrics/user/${userId}?limit=${limit}`);
+  return safeFetch(
+    `${API_BASE_URL}/health-metrics/user/${userId}?limit=${limit}`
+  );
 };
 
-export const addHealthMetric = async (userId, metricData) => {
-  if (!userId) throw new Error('Invalid userId');
-  return safeFetch(`${API_BASE_URL}/health-metrics/user/${userId}`, {
+export const addHealthMetric = async (userId, metricData) =>
+  safeFetch(`${API_BASE_URL}/health-metrics/user/${userId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(metricData)
   });
-};
 
 // ============================================
 // EDUCATION
 // ============================================
 
 export const getEducation = async (category = null) => {
-  const url = category ? `${API_BASE_URL}/education?category=${category}` : `${API_BASE_URL}/education`;
+  const url = category
+    ? `${API_BASE_URL}/education?category=${category}`
+    : `${API_BASE_URL}/education`;
   return safeFetch(url);
 };
 
-export const getEducationById = async (id) => safeFetch(`${API_BASE_URL}/education/${id}`);
+export const getEducationById = async (id) =>
+  safeFetch(`${API_BASE_URL}/education/${id}`);
 
-export const logContentAccess = async (userId, contentId) => {
-  if (!userId) throw new Error('Invalid userId');
-  return safeFetch(`${API_BASE_URL}/education/${contentId}/access`, {
+export const logContentAccess = async (userId, contentId) =>
+  safeFetch(`${API_BASE_URL}/education/${contentId}/access`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: userId })
   });
-};
 
 // ============================================
-// COMBINED DATA LOADER
+// DASHBOARD DATA LOADER
 // ============================================
 
 export const loadUserData = async (userId) => {
   if (!userId) {
-    console.warn('loadUserData blocked: invalid userId', userId);
     return {
       exercises: [],
       assignments: [],
@@ -145,16 +161,22 @@ export const loadUserData = async (userId) => {
     try {
       return await fn();
     } catch (err) {
-      console.error('Data fetch failed:', err);
+      console.error('Data fetch failed:', err.message);
       return null;
     }
   };
 
-  const [exercises, assignments, weeklyStats, healthMetrics, education] = await Promise.all([
+  const [
+    exercises,
+    assignments,
+    weeklyStats,
+    healthMetrics,
+    education
+  ] = await Promise.all([
     safeCall(() => getExercises()),
     safeCall(() => getUserAssignments(userId)),
     safeCall(() => getWeeklyProgress(userId)),
-    safeCall(() => getHealthMetrics(userId, 5)),
+    safeCall(() => getHealthMetrics(userId)),
     safeCall(() => getEducation())
   ]);
 
