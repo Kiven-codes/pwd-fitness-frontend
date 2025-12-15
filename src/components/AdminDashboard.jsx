@@ -16,8 +16,8 @@ function AdminDashboard({ user, accessibility }) {
   const [activeView, setActiveView] = useState('overview');
   const [loading, setLoading] = useState(false);
 
-  // New exercise form
-  const [newExercise, setNewExercise] = useState({
+  // Exercise form (for both add and edit)
+  const [exerciseForm, setExerciseForm] = useState({
     exercise_name: '',
     description: '',
     difficulty_level: 'Easy',
@@ -25,59 +25,54 @@ function AdminDashboard({ user, accessibility }) {
     target_muscle_group: ''
   });
 
+  const [editingExercise, setEditingExercise] = useState(null);
+
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = async () => {
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // Load all users
-    const usersRes = await fetch(`${API_BASE_URL}/users/all`); // ✅ updated route
-    if (usersRes.ok) {
-      const usersData = await usersRes.json();
-      setUsers(usersData);
+      // Load all users
+      const usersRes = await fetch(`${API_BASE_URL}/users/all`);
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        setUsers(usersData);
 
-      // Calculate stats
-      const pwds = usersData.filter(u => u.role === 'PWD').length;
-      const therapists = usersData.filter(u => u.role === 'THERAPIST' || u.role === 'CAREGIVER').length;
+        const pwds = usersData.filter(u => u.role === 'PWD').length;
+        const therapists = usersData.filter(u => u.role === 'THERAPIST' || u.role === 'CAREGIVER').length;
 
-      setStats(prev => ({
-        ...prev,
-        totalUsers: usersData.length,
-        totalPWDs: pwds,
-        totalTherapists: therapists
-      }));
-    } else {
-      console.error('Failed to fetch users:', usersRes.status);
+        setStats(prev => ({
+          ...prev,
+          totalUsers: usersData.length,
+          totalPWDs: pwds,
+          totalTherapists: therapists
+        }));
+      }
+
+      // Load exercises
+      const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
+      if (exercisesRes.ok) {
+        const exercisesData = await exercisesRes.json();
+        setExercises(exercisesData);
+        setStats(prev => ({ ...prev, totalExercises: exercisesData.length }));
+      }
+
+      // Load assignments count
+      const assignmentsRes = await fetch(`${API_BASE_URL}/assignments/all`);
+      if (assignmentsRes.ok) {
+        const assignmentsData = await assignmentsRes.json();
+        setStats(prev => ({ ...prev, totalAssignments: assignmentsData.length }));
+      }
+
+    } catch (error) {
+      console.error('Error loading admin data:', error);
+    } finally {
+      setLoading(false);
     }
-
-    // Load exercises
-    const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
-    if (exercisesRes.ok) {
-      const exercisesData = await exercisesRes.json();
-      setExercises(exercisesData);
-      setStats(prev => ({ ...prev, totalExercises: exercisesData.length }));
-    } else {
-      console.error('Failed to fetch exercises:', exercisesRes.status);
-    }
-
-    // Load assignments count
-    const assignmentsRes = await fetch(`${API_BASE_URL}/assignments/all`);
-    if (assignmentsRes.ok) {
-      const assignmentsData = await assignmentsRes.json();
-      setStats(prev => ({ ...prev, totalAssignments: assignmentsData.length }));
-    } else {
-      console.error('Failed to fetch assignments:', assignmentsRes.status);
-    }
-
-  } catch (error) {
-    console.error('Error loading admin data:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleAddExercise = async (e) => {
     e.preventDefault();
@@ -86,19 +81,82 @@ function AdminDashboard({ user, accessibility }) {
       const response = await fetch(`${API_BASE_URL}/exercises`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newExercise)
+        body: JSON.stringify(exerciseForm)
       });
 
       if (!response.ok) throw new Error('Failed to add exercise');
 
       alert('✅ Exercise added successfully!');
-      setNewExercise({
+      setExerciseForm({
         exercise_name: '',
         description: '',
         difficulty_level: 'Easy',
         equipment_needed: '',
         target_muscle_group: ''
       });
+      loadData();
+      setActiveView('exercises');
+    } catch (error) {
+      alert('❌ Error: ' + error.message);
+    }
+  };
+
+  const handleEditExercise = (exercise) => {
+    setEditingExercise(exercise);
+    setExerciseForm({
+      exercise_name: exercise.exercise_name,
+      description: exercise.description,
+      difficulty_level: exercise.difficulty_level || 'Easy',
+      equipment_needed: exercise.equipment_needed || '',
+      target_muscle_group: exercise.target_muscle_group || ''
+    });
+    setActiveView('editExercise');
+  };
+
+  const handleUpdateExercise = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/exercises/${editingExercise.exercise_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(exerciseForm)
+      });
+
+      if (!response.ok) throw new Error('Failed to update exercise');
+
+      alert('✅ Exercise updated successfully!');
+      setEditingExercise(null);
+      setExerciseForm({
+        exercise_name: '',
+        description: '',
+        difficulty_level: 'Easy',
+        equipment_needed: '',
+        target_muscle_group: ''
+      });
+      loadData();
+      setActiveView('exercises');
+    } catch (error) {
+      alert('❌ Error: ' + error.message);
+    }
+  };
+
+  const handleDeleteExercise = async (exerciseId, exerciseName) => {
+    if (!confirm(`Are you sure you want to delete "${exerciseName}"?`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/exercises/${exerciseId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete exercise');
+      }
+
+      alert('✅ Exercise deleted successfully!');
       loadData();
     } catch (error) {
       alert('❌ Error: ' + error.message);
@@ -271,8 +329,8 @@ function AdminDashboard({ user, accessibility }) {
                 <input
                   type="text"
                   className="form-control"
-                  value={newExercise.exercise_name}
-                  onChange={(e) => setNewExercise({ ...newExercise, exercise_name: e.target.value })}
+                  value={exerciseForm.exercise_name}
+                  onChange={(e) => setExerciseForm({ ...exerciseForm, exercise_name: e.target.value })}
                   required
                 />
               </div>
@@ -282,8 +340,8 @@ function AdminDashboard({ user, accessibility }) {
                 <textarea
                   className="form-control"
                   rows="3"
-                  value={newExercise.description}
-                  onChange={(e) => setNewExercise({ ...newExercise, description: e.target.value })}
+                  value={exerciseForm.description}
+                  onChange={(e) => setExerciseForm({ ...exerciseForm, description: e.target.value })}
                   required
                 ></textarea>
               </div>
@@ -293,8 +351,8 @@ function AdminDashboard({ user, accessibility }) {
                   <label className="form-label">Difficulty Level</label>
                   <select
                     className="form-select"
-                    value={newExercise.difficulty_level}
-                    onChange={(e) => setNewExercise({ ...newExercise, difficulty_level: e.target.value })}
+                    value={exerciseForm.difficulty_level}
+                    onChange={(e) => setExerciseForm({ ...exerciseForm, difficulty_level: e.target.value })}
                   >
                     <option>Easy</option>
                     <option>Medium</option>
@@ -307,8 +365,8 @@ function AdminDashboard({ user, accessibility }) {
                   <input
                     type="text"
                     className="form-control"
-                    value={newExercise.target_muscle_group}
-                    onChange={(e) => setNewExercise({ ...newExercise, target_muscle_group: e.target.value })}
+                    value={exerciseForm.target_muscle_group}
+                    onChange={(e) => setExerciseForm({ ...exerciseForm, target_muscle_group: e.target.value })}
                     placeholder="e.g., Arms, Legs, Core"
                   />
                 </div>
@@ -319,8 +377,8 @@ function AdminDashboard({ user, accessibility }) {
                 <input
                   type="text"
                   className="form-control"
-                  value={newExercise.equipment_needed}
-                  onChange={(e) => setNewExercise({ ...newExercise, equipment_needed: e.target.value })}
+                  value={exerciseForm.equipment_needed}
+                  onChange={(e) => setExerciseForm({ ...exerciseForm, equipment_needed: e.target.value })}
                   placeholder="e.g., Resistance band, Chair"
                 />
               </div>
@@ -334,14 +392,122 @@ function AdminDashboard({ user, accessibility }) {
         </div>
       )}
 
-      {/* Exercises List */}
+      {/* Edit Exercise Form */}
+      {activeView === 'editExercise' && editingExercise && (
+        <div className={`card ${accessibility.highContrast ? 'bg-dark border-warning' : ''}`}>
+          <div className="card-header d-flex justify-content-between align-items-center">
+            <h4 className="mb-0">Edit Exercise</h4>
+            <button 
+              className="btn btn-secondary btn-sm" 
+              onClick={() => {
+                setActiveView('exercises');
+                setEditingExercise(null);
+              }}
+            >
+              <i className="bi bi-arrow-left me-1"></i> Back
+            </button>
+          </div>
+          <div className="card-body">
+            <form onSubmit={handleUpdateExercise}>
+              <div className="mb-3">
+                <label className="form-label">Exercise Name</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={exerciseForm.exercise_name}
+                  onChange={(e) => setExerciseForm({ ...exerciseForm, exercise_name: e.target.value })}
+                  required
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Description</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={exerciseForm.description}
+                  onChange={(e) => setExerciseForm({ ...exerciseForm, description: e.target.value })}
+                  required
+                ></textarea>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Difficulty Level</label>
+                  <select
+                    className="form-select"
+                    value={exerciseForm.difficulty_level}
+                    onChange={(e) => setExerciseForm({ ...exerciseForm, difficulty_level: e.target.value })}
+                  >
+                    <option>Easy</option>
+                    <option>Medium</option>
+                    <option>Hard</option>
+                  </select>
+                </div>
+
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Target Muscle Group</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={exerciseForm.target_muscle_group}
+                    onChange={(e) => setExerciseForm({ ...exerciseForm, target_muscle_group: e.target.value })}
+                    placeholder="e.g., Arms, Legs, Core"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="form-label">Equipment Needed</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={exerciseForm.equipment_needed}
+                  onChange={(e) => setExerciseForm({ ...exerciseForm, equipment_needed: e.target.value })}
+                  placeholder="e.g., Resistance band, Chair"
+                />
+              </div>
+
+              <div className="d-flex gap-2">
+                <button type="submit" className="btn btn-primary">
+                  <i className="bi bi-check-circle me-2"></i>
+                  Update Exercise
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setActiveView('exercises');
+                    setEditingExercise(null);
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Exercises List with Edit/Delete */}
       {activeView === 'exercises' && (
         <div className={`card ${accessibility.highContrast ? 'bg-dark border-warning' : ''}`}>
           <div className="card-header d-flex justify-content-between align-items-center">
             <h4 className="mb-0">All Exercises</h4>
-            <button className="btn btn-secondary btn-sm" onClick={() => setActiveView('overview')}>
-              <i className="bi bi-arrow-left me-1"></i> Back
-            </button>
+            <div className="d-flex gap-2">
+              <button 
+                className="btn btn-success btn-sm" 
+                onClick={() => setActiveView('addExercise')}
+              >
+                <i className="bi bi-plus-circle me-1"></i> Add New
+              </button>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={() => setActiveView('overview')}
+              >
+                <i className="bi bi-arrow-left me-1"></i> Back
+              </button>
+            </div>
           </div>
           <div className="card-body">
             <div className="row g-3">
@@ -349,19 +515,43 @@ function AdminDashboard({ user, accessibility }) {
                 <div key={ex.exercise_id} className="col-md-6">
                   <div className="card">
                     <div className="card-body">
-                      <h5>{ex.exercise_name}</h5>
-                      <p className="mb-2">{ex.description}</p>
+                      <div className="d-flex justify-content-between align-items-start mb-2">
+                        <h5 className="mb-0">{ex.exercise_name}</h5>
+                        <div className="btn-group">
+                          <button
+                            className="btn btn-sm btn-outline-primary"
+                            onClick={() => handleEditExercise(ex)}
+                            title="Edit"
+                          >
+                            <i className="bi bi-pencil-fill"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => handleDeleteExercise(ex.exercise_id, ex.exercise_name)}
+                            title="Delete"
+                          >
+                            <i className="bi bi-trash-fill"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <p className="mb-2 text-muted">{ex.description}</p>
                       <div>
                         <span className={`badge me-2 ${
                           ex.difficulty_level === 'Easy' ? 'bg-success' :
                           ex.difficulty_level === 'Medium' ? 'bg-warning text-dark' : 'bg-danger'
                         }`}>
-                          {ex.difficulty_level}
+                          {ex.difficulty_level || 'Easy'}
                         </span>
                         {ex.target_muscle_group && (
                           <span className="badge bg-info">{ex.target_muscle_group}</span>
                         )}
                       </div>
+                      {ex.equipment_needed && (
+                        <p className="mb-0 mt-2 small text-muted">
+                          <i className="bi bi-tools me-1"></i>
+                          {ex.equipment_needed}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

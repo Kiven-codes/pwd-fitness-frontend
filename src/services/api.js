@@ -55,6 +55,20 @@ export const getExercises = async () =>
 export const getExerciseById = async (id) =>
   safeFetch(`${API_BASE_URL}/exercises/${id}`);
 
+// Update exercise
+export const updateExercise = async (id, exerciseData) =>
+  safeFetch(`${API_BASE_URL}/exercises/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(exerciseData)
+  });
+
+// Delete exercise
+export const deleteExercise = async (id) =>
+  safeFetch(`${API_BASE_URL}/exercises/${id}`, {
+    method: 'DELETE'
+  });
+
 // ============================================
 // ASSIGNMENTS
 // ============================================
