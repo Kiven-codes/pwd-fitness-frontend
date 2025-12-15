@@ -22,9 +22,13 @@ export const login = async (username, password) => {
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || 'Login failed');
 
-  if (!data?.id) throw new Error('Invalid user data returned from server');
-  return data; // ✅ now guaranteed to have user.id
+  if (!data?.user?.id) {
+    throw new Error('Invalid user data returned from server');
+  }
+
+  return data.user; // 🔥 return the actual user object
 };
+
 
 export const register = async (userData) => {
   const response = await fetch(`${API_BASE_URL}/auth/register`, {
