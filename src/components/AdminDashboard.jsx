@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
 function AdminDashboard({ user, accessibility }) {
   const [stats, setStats] = useState({
