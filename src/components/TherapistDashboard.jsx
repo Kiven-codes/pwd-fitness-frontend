@@ -25,34 +25,24 @@ function TherapistDashboard({ user, accessibility }) {
     try {
       setLoading(true);
 
-      // Load patients assigned to this therapist
-      const fetchPatients = async () => {
-  try {
-    const response = await fetch(`${API_BASE_URL}/therapist/${therapistId}/patients`);
-    if (!response.ok) throw new Error('Failed to fetch patients');
-    const patients = await response.json();
-    setPatients(patients);
-  } catch (err) {
-    console.error('Failed to fetch patients:', err);
-  }
-};
-
-
-      // Load all users and filter PWDs
-      const usersRes = await fetch(`${API_BASE_URL}/users/all-users`);
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        const pwds = usersData.filter(u => u.role === 'PWD');
-        setAllPWDs(pwds);
+      // Load all PWD users
+      const patientsRes = await fetch(`${API_BASE_URL}/users/patients`);
+      if (patientsRes.ok) {
+        const patientsData = await patientsRes.json();
+        setPatients(patientsData);
+        setAllPWDs(patientsData); // also use for dropdown
       } else {
-        console.error('Failed to fetch users:', usersRes.status);
+        console.error('Failed to fetch patients:', patientsRes.status);
       }
 
       // Load exercises
       const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
-      const exercisesData = exercisesRes.ok ? await exercisesRes.json() : [];
-      setExercises(exercisesData);
-
+      if (exercisesRes.ok) {
+        const exercisesData = await exercisesRes.json();
+        setExercises(exercisesData);
+      } else {
+        console.error('Failed to fetch exercises:', exercisesRes.status);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -101,7 +91,7 @@ function TherapistDashboard({ user, accessibility }) {
   const viewPatientProgress = async (patientId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/progress/user/${patientId}/summary`);
-      const data = await response.ok ? await response.json() : null;
+      const data = response.ok ? await response.json() : null;
       setSelectedPatient(data);
     } catch (error) {
       console.error('Error loading patient progress:', error);
@@ -206,14 +196,14 @@ function TherapistDashboard({ user, accessibility }) {
               {loading ? (
                 <div className="text-center py-4"><div className="spinner-border"></div></div>
               ) : patients.length === 0 ? (
-                <p className="text-muted text-center">No patients assigned yet</p>
+                <p className="text-muted text-center">No patients found</p>
               ) : (
                 <div className="list-group">
                   {patients.map(patient => (
                     <div key={patient.user_id} className="list-group-item d-flex justify-content-between align-items-center">
                       <div>
                         <h6>{patient.name}</h6>
-                        <small>{patient.disability_type} | Age: {patient.age}</small>
+                        <small>{patient.disability_type}</small>
                       </div>
                       <button className="btn btn-sm btn-outline-primary" onClick={() => viewPatientProgress(patient.user_id)}>
                         View Progress

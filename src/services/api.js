@@ -78,10 +78,7 @@ export const getUserAssignments = async (userId) => {
 };
 
 // Fetch all patients
-export const getPatients = async () => {
-  const allUsers = await safeFetch(`${API_BASE_URL}/users/all`);
-  return allUsers.filter(user => user.role === 'PWD' || user.role === 'patient');
-};
+export const getPatients = async () => safeFetch(`${API_BASE_URL}/users/patients`);
 
 
 // Assign exercise
