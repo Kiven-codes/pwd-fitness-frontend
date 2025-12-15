@@ -14,19 +14,17 @@ function App() {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   // Data State
   const [exercises, setExercises] = useState([]);
   const [assignments, setAssignments] = useState([]);
-  const [weeklyStats, setWeeklyStats] = useState({
-    total_sessions: 0,
-    total_minutes: 0,
-    total_calories: 0,
-    avg_progress_score: 0
-  });
+  const [weeklyStats, setWeeklyStats] = useState(null); // initially null
   const [healthMetrics, setHealthMetrics] = useState([]);
   const [education, setEducation] = useState([]);
-  
+
+  // Loading state
+  const [loadingDashboard, setLoadingDashboard] = useState(false);
+
   // Accessibility State
   const [accessibility, setAccessibility] = useState({
     largeText: false,
@@ -45,15 +43,25 @@ function App() {
   }, []);
 
   const loadDashboardData = async (userId) => {
+    setLoadingDashboard(true);
     try {
       const data = await loadUserData(userId);
+      console.log('Dashboard data loaded:', data);
+
       setExercises(data.exercises || []);
       setAssignments(data.assignments || []);
-      setWeeklyStats(data.weeklyStats || {});
+      setWeeklyStats(data.weeklyStats || {
+        total_sessions: 0,
+        total_minutes: 0,
+        total_calories: 0,
+        avg_progress_score: 0
+      });
       setHealthMetrics(data.healthMetrics || []);
       setEducation(data.education || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+    } finally {
+      setLoadingDashboard(false);
     }
   };
 
@@ -89,11 +97,7 @@ function App() {
 
   return (
     <div className={`min-vh-100 ${accessibility.highContrast ? 'bg-dark text-warning' : 'bg-light'}`}>
-      <Navbar 
-        user={user}
-        onLogout={handleLogout}
-        accessibility={accessibility}
-      />
+      <Navbar user={user} onLogout={handleLogout} accessibility={accessibility} />
 
       <div className="container-fluid py-4">
         <div className="row">
@@ -107,7 +111,6 @@ function App() {
           </div>
 
           <div className="col-md-9 col-lg-10">
-            {/* Role-based Dashboard */}
             {activeTab === 'dashboard' && (
               <>
                 {user.role === 'PWD' && (
@@ -117,16 +120,17 @@ function App() {
                     assignments={assignments}
                     accessibility={accessibility}
                     onRefresh={refreshData}
+                    loading={loadingDashboard}
                   />
                 )}
-                
+
                 {(user.role === 'THERAPIST' || user.role === 'CAREGIVER') && (
                   <TherapistDashboard
                     user={user}
                     accessibility={accessibility}
                   />
                 )}
-                
+
                 {user.role === 'ADMIN' && (
                   <AdminDashboard
                     user={user}
@@ -140,8 +144,6 @@ function App() {
               <ExercisesPage
                 exercises={exercises}
                 accessibility={accessibility}
-                user={user} // <-- pass user to know admin role
-                refreshData={refreshData} // <-- refresh after edit/delete
               />
             )}
 
