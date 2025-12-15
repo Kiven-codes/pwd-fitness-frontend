@@ -1,62 +1,57 @@
 const API_BASE_URL = 'https://api-app-8efk.onrender.com';
 
 // ============================================
-// AUTHENTICATION
+// SAFE FETCH
 // ============================================
 
 export const safeFetch = async (url, options = {}) => {
   const response = await fetch(url, options);
-  const data = await response.json();
+
+  // Try parsing JSON, fallback to text for error messages
+  let data;
+  try {
+    data = await response.json();
+  } catch {
+    const text = await response.text();
+    throw new Error(`Invalid JSON response: ${text}`);
+  }
 
   if (!response.ok) throw new Error(data.error || 'Request failed');
   return data;
 };
 
+// ============================================
+// AUTHENTICATION
+// ============================================
+
 export const login = async (username, password) => {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const data = await safeFetch(`${API_BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
   });
 
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Login failed');
-
   if (!data?.user?.id) {
     throw new Error('Invalid user data returned from server');
   }
 
-  return data.user; // 🔥 return the actual user object
+  return data.user;
 };
 
-
 export const register = async (userData) => {
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  return safeFetch(`${API_BASE_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData)
   });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Registration failed');
-  return data;
 };
 
 // ============================================
 // EXERCISES
 // ============================================
 
-export const getExercises = async () => {
-  const response = await fetch(`${API_BASE_URL}/exercises`);
-  if (!response.ok) throw new Error('Failed to fetch exercises');
-  return response.json();
-};
-
-export const getExerciseById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/exercises/${id}`);
-  if (!response.ok) throw new Error('Failed to fetch exercise');
-  return response.json();
-};
+export const getExercises = async () => safeFetch(`${API_BASE_URL}/exercises`);
+export const getExerciseById = async (id) => safeFetch(`${API_BASE_URL}/exercises/${id}`);
 
 // ============================================
 // ASSIGNMENTS
@@ -64,9 +59,7 @@ export const getExerciseById = async (id) => {
 
 export const getUserAssignments = async (userId, status = 'Active') => {
   if (!userId) return [];
-  const response = await fetch(`${API_BASE_URL}/assignments/user/${userId}?status=${status}`);
-  if (!response.ok) throw new Error('Failed to fetch assignments');
-  return response.json();
+  return safeFetch(`${API_BASE_URL}/assignments/user/${userId}?status=${status}`);
 };
 
 // ============================================
@@ -74,7 +67,7 @@ export const getUserAssignments = async (userId, status = 'Active') => {
 // ============================================
 
 export const logProgress = async (assignmentId, duration, calories, score, remarks = '') => {
-  const response = await fetch(`${API_BASE_URL}/progress`, {
+  return safeFetch(`${API_BASE_URL}/progress`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -85,24 +78,16 @@ export const logProgress = async (assignmentId, duration, calories, score, remar
       remarks
     })
   });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Failed to log progress');
-  return data;
 };
 
 export const getWeeklyProgress = async (userId) => {
   if (!userId) return {};
-  const response = await fetch(`${API_BASE_URL}/progress/user/${userId}/weekly`);
-  if (!response.ok) throw new Error('Failed to fetch weekly progress');
-  return response.json();
+  return safeFetch(`${API_BASE_URL}/progress/user/${userId}/weekly`);
 };
 
 export const getProgressSummary = async (userId) => {
   if (!userId) return {};
-  const response = await fetch(`${API_BASE_URL}/progress/user/${userId}/summary`);
-  if (!response.ok) throw new Error('Failed to fetch progress summary');
-  return response.json();
+  return safeFetch(`${API_BASE_URL}/progress/user/${userId}/summary`);
 };
 
 // ============================================
@@ -129,26 +114,18 @@ export const addHealthMetric = async (userId, metricData) => {
 
 export const getEducation = async (category = null) => {
   const url = category ? `${API_BASE_URL}/education?category=${category}` : `${API_BASE_URL}/education`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch education content');
-  return response.json();
+  return safeFetch(url);
 };
 
-export const getEducationById = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/education/${id}`);
-  if (!response.ok) throw new Error('Failed to fetch education content');
-  return response.json();
-};
+export const getEducationById = async (id) => safeFetch(`${API_BASE_URL}/education/${id}`);
 
 export const logContentAccess = async (userId, contentId) => {
   if (!userId) throw new Error('Invalid userId');
-  const response = await fetch(`${API_BASE_URL}/education/${contentId}/access`, {
+  return safeFetch(`${API_BASE_URL}/education/${contentId}/access`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ user_id: userId })
   });
-  if (!response.ok) throw new Error('Failed to log content access');
-  return response.json();
 };
 
 // ============================================
