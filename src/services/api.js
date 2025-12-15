@@ -1,12 +1,11 @@
 const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
 // ============================================
-// SAFE FETCH (FIXED — READS BODY ONLY ONCE)
+// SAFE FETCH
 // ============================================
 
 export const safeFetch = async (url, options = {}) => {
   const response = await fetch(url, options);
-
   const contentType = response.headers.get('content-type');
   let data;
 
@@ -53,8 +52,7 @@ export const register = async (userData) =>
 // EXERCISES
 // ============================================
 
-export const getExercises = async () =>
-  safeFetch(`${API_BASE_URL}/exercises`);
+export const getExercises = async () => safeFetch(`${API_BASE_URL}/exercises`);
 
 export const getExerciseById = async (id) =>
   safeFetch(`${API_BASE_URL}/exercises/${id}`);
@@ -63,11 +61,9 @@ export const getExerciseById = async (id) =>
 // ASSIGNMENTS
 // ============================================
 
-export const getUserAssignments = async (userId, status = 'Active') => {
+export const getUserAssignments = async (userId) => {
   if (!userId) return [];
-  return safeFetch(
-    `${API_BASE_URL}/assignments/user/${userId}?status=${status}`
-  );
+  return safeFetch(`${API_BASE_URL}/assignments/user/${userId}`);
 };
 
 // ============================================
@@ -109,9 +105,7 @@ export const getProgressSummary = async (userId) => {
 
 export const getHealthMetrics = async (userId, limit = 5) => {
   if (!userId) return [];
-  return safeFetch(
-    `${API_BASE_URL}/health-metrics/user/${userId}?limit=${limit}`
-  );
+  return safeFetch(`${API_BASE_URL}/health-metrics/user/${userId}?limit=${limit}`);
 };
 
 export const addHealthMetric = async (userId, metricData) =>
