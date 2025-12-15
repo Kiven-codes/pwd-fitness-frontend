@@ -31,10 +31,7 @@ export const login = async (username, password) => {
     body: JSON.stringify({ username, password })
   });
 
-  if (!data?.user?.id) {
-    throw new Error('Invalid user data returned from server');
-  }
-
+  if (!data?.user?.id) throw new Error('Invalid user data returned from server');
   return data.user;
 };
 
