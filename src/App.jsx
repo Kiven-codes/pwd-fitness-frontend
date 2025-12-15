@@ -34,6 +34,9 @@ function App() {
     voiceEnabled: false
   });
 
+  // Loading state for Dashboard
+  const [loading, setLoading] = useState(true);
+
   // Check for saved user session
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
@@ -42,11 +45,14 @@ function App() {
       setUser(userData);
       setIsAuthenticated(true);
       loadDashboardData(userData.id);
+    } else {
+      setLoading(false);
     }
   }, []);
 
   // Load all dashboard data
   const loadDashboardData = async (userId) => {
+    setLoading(true);
     try {
       const data = await loadUserData(userId);
       setExercises(data.exercises || []);
@@ -57,6 +63,7 @@ function App() {
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
+    setLoading(false);
   };
 
   const handleLoginSuccess = (userData) => {
@@ -125,8 +132,10 @@ function App() {
                     user={user}
                     weeklyStats={weeklyStats}
                     assignments={assignments}
+                    exercises={exercises} // ✅ pass exercises here
                     accessibility={accessibility}
                     onRefresh={refreshData}
+                    loading={loading}
                   />
                 )}
                 {(user.role === 'THERAPIST' || user.role === 'CAREGIVER') && (

@@ -27,7 +27,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
     }
   };
 
-  if (loading || !weeklyStats || !assignments) {
+  if (loading) {
     return (
       <div className="text-center py-5">
         <div className="spinner-border" role="status">
@@ -37,7 +37,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
     );
   }
 
-  // Merge assignments with exercises to get full details
+  // Merge assignments with exercises
   const safeAssignments = assignments.map(a => {
     const exercise = exercises.find(e => e.exercise_id === a.exercise_id) || {};
     return {
@@ -62,6 +62,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
 
       {/* Stats Cards */}
       <div className="row g-3 mb-4">
+        {/* Weekly Sessions */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-primary text-white'}`}>
             <div className="card-body">
@@ -71,7 +72,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
             </div>
           </div>
         </div>
-
+        {/* Total Minutes */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-success text-white'}`}>
             <div className="card-body">
@@ -81,7 +82,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
             </div>
           </div>
         </div>
-
+        {/* Calories */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-danger text-white'}`}>
             <div className="card-body">
@@ -91,7 +92,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
             </div>
           </div>
         </div>
-
+        {/* Avg Score */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-info text-white'}`}>
             <div className="card-body">
@@ -131,28 +132,23 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
                   </tr>
                 </thead>
                 <tbody>
-                  {safeAssignments.map((assignment) => (
-                    <tr key={assignment.assignment_id}>
-                      <td><strong>{assignment.exercise_name}</strong></td>
+                  {safeAssignments.map(a => (
+                    <tr key={a.assignment_id}>
+                      <td><strong>{a.exercise_name}</strong></td>
                       <td>
                         <span className={`badge ${
-                          assignment.difficulty_level === 'Easy' ? 'bg-success' :
-                          assignment.difficulty_level === 'Medium' ? 'bg-warning text-dark' : 'bg-danger'
-                        }`}>
-                          {assignment.difficulty_level}
-                        </span>
+                          a.difficulty_level === 'Easy' ? 'bg-success' :
+                          a.difficulty_level === 'Medium' ? 'bg-warning text-dark' : 'bg-danger'
+                        }`}>{a.difficulty_level}</span>
                       </td>
-                      <td>{assignment.target_muscle_group}</td>
-                      <td>{assignment.frequency}</td>
+                      <td>{a.target_muscle_group}</td>
+                      <td>{a.frequency}</td>
                       <td>
-                        {assignment.assigned_by_name}<br/>
-                        <small className="text-muted">({assignment.assigned_by_role})</small>
+                        {a.assigned_by_name}<br/>
+                        <small className="text-muted">({a.assigned_by_role})</small>
                       </td>
                       <td>
-                        <button
-                          className="btn btn-sm btn-primary"
-                          onClick={() => handleLogProgress(assignment.assignment_id, assignment.exercise_name)}
-                        >
+                        <button className="btn btn-sm btn-primary" onClick={() => handleLogProgress(a.assignment_id, a.exercise_name)}>
                           <i className="bi bi-check-circle me-1"></i> Log Progress
                         </button>
                       </td>
