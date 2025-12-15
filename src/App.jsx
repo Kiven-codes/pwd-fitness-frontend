@@ -8,7 +8,7 @@ import HealthMetricsPage from './components/HealthMetricsPage';
 import EducationPage from './components/EducationPage';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import { loadUserData } from './services/api';
+import { loadUserData, deleteExercise } from './services/api';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -18,12 +18,14 @@ function App() {
   // Data State
   const [exercises, setExercises] = useState([]);
   const [assignments, setAssignments] = useState([]);
-  const [weeklyStats, setWeeklyStats] = useState(null); // initially null
+  const [weeklyStats, setWeeklyStats] = useState({
+    total_sessions: 0,
+    total_minutes: 0,
+    total_calories: 0,
+    avg_progress_score: 0
+  });
   const [healthMetrics, setHealthMetrics] = useState([]);
   const [education, setEducation] = useState([]);
-
-  // Loading state
-  const [loadingDashboard, setLoadingDashboard] = useState(false);
 
   // Accessibility State
   const [accessibility, setAccessibility] = useState({
@@ -32,6 +34,7 @@ function App() {
     voiceEnabled: false
   });
 
+  // Check for saved user session
   useEffect(() => {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
@@ -42,26 +45,17 @@ function App() {
     }
   }, []);
 
+  // Load all dashboard data
   const loadDashboardData = async (userId) => {
-    setLoadingDashboard(true);
     try {
       const data = await loadUserData(userId);
-      console.log('Dashboard data loaded:', data);
-
       setExercises(data.exercises || []);
       setAssignments(data.assignments || []);
-      setWeeklyStats(data.weeklyStats || {
-        total_sessions: 0,
-        total_minutes: 0,
-        total_calories: 0,
-        avg_progress_score: 0
-      });
+      setWeeklyStats(data.weeklyStats || {});
       setHealthMetrics(data.healthMetrics || []);
       setEducation(data.education || []);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-    } finally {
-      setLoadingDashboard(false);
     }
   };
 
@@ -80,14 +74,29 @@ function App() {
   };
 
   const refreshData = () => {
-    if (user) {
-      loadDashboardData(user.id);
+    if (user) loadDashboardData(user.id);
+  };
+
+  // Admin actions
+  const handleUpdateExercise = (exerciseId) => {
+    alert(`Update exercise ${exerciseId} (implement your modal or form here)`);
+  };
+
+  const handleDeleteExercise = async (exerciseId) => {
+    if (!window.confirm('Are you sure you want to delete this exercise?')) return;
+    try {
+      await deleteExercise(exerciseId);
+      alert('Exercise deleted successfully');
+      refreshData();
+    } catch (error) {
+      alert('Error deleting exercise: ' + error.message);
     }
   };
 
+  // Show login if not authenticated
   if (!isAuthenticated) {
     return (
-      <LoginPage 
+      <LoginPage
         onLoginSuccess={handleLoginSuccess}
         accessibility={accessibility}
         setAccessibility={setAccessibility}
@@ -98,18 +107,16 @@ function App() {
   return (
     <div className={`min-vh-100 ${accessibility.highContrast ? 'bg-dark text-warning' : 'bg-light'}`}>
       <Navbar user={user} onLogout={handleLogout} accessibility={accessibility} />
-
       <div className="container-fluid py-4">
         <div className="row">
           <div className="col-md-3 col-lg-2 mb-4">
-            <Sidebar 
+            <Sidebar
               activeTab={activeTab}
               setActiveTab={setActiveTab}
               accessibility={accessibility}
               setAccessibility={setAccessibility}
             />
           </div>
-
           <div className="col-md-9 col-lg-10">
             {activeTab === 'dashboard' && (
               <>
@@ -120,22 +127,13 @@ function App() {
                     assignments={assignments}
                     accessibility={accessibility}
                     onRefresh={refreshData}
-                    loading={loadingDashboard}
                   />
                 )}
-
                 {(user.role === 'THERAPIST' || user.role === 'CAREGIVER') && (
-                  <TherapistDashboard
-                    user={user}
-                    accessibility={accessibility}
-                  />
+                  <TherapistDashboard user={user} accessibility={accessibility} />
                 )}
-
                 {user.role === 'ADMIN' && (
-                  <AdminDashboard
-                    user={user}
-                    accessibility={accessibility}
-                  />
+                  <AdminDashboard user={user} accessibility={accessibility} />
                 )}
               </>
             )}
@@ -144,6 +142,9 @@ function App() {
               <ExercisesPage
                 exercises={exercises}
                 accessibility={accessibility}
+                user={user}
+                onUpdate={handleUpdateExercise}
+                onDelete={handleDeleteExercise}
               />
             )}
 
@@ -157,10 +158,7 @@ function App() {
             )}
 
             {activeTab === 'education' && (
-              <EducationPage
-                education={education}
-                accessibility={accessibility}
-              />
+              <EducationPage education={education} accessibility={accessibility} />
             )}
           </div>
         </div>
