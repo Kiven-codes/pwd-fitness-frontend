@@ -1,7 +1,7 @@
 import { logProgress } from '../services/api';
 
-function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, loading }) {
-  
+function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, onRefresh, loading }) {
+
   const handleLogProgress = async (assignmentId, exerciseName) => {
     const duration = prompt(`Log progress for: ${exerciseName}\n\nDuration (minutes):`);
     if (!duration) return;
@@ -37,7 +37,20 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, l
     );
   }
 
-  const safeAssignments = assignments || [];
+  // Merge assignments with exercises to get full details
+  const safeAssignments = assignments.map(a => {
+    const exercise = exercises.find(e => e.exercise_id === a.exercise_id) || {};
+    return {
+      assignment_id: a.assignment_id,
+      exercise_name: exercise.exercise_name || 'Unnamed Exercise',
+      difficulty_level: exercise.difficulty_level || 'Unknown',
+      target_muscle_group: exercise.target_muscle_group || 'N/A',
+      frequency: a.frequency || 'N/A',
+      assigned_by_name: a.assigned_by_name || 'Unknown',
+      assigned_by_role: a.assigned_by_role || 'N/A',
+    };
+  });
+
   const avgScore = Number(weeklyStats.avg_progress_score) || 0;
 
   return (
@@ -49,7 +62,6 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, l
 
       {/* Stats Cards */}
       <div className="row g-3 mb-4">
-        {/* Weekly Sessions */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-primary text-white'}`}>
             <div className="card-body">
@@ -60,7 +72,6 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, l
           </div>
         </div>
 
-        {/* Total Minutes */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-success text-white'}`}>
             <div className="card-body">
@@ -71,7 +82,6 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, l
           </div>
         </div>
 
-        {/* Calories */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-danger text-white'}`}>
             <div className="card-body">
@@ -82,7 +92,6 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, l
           </div>
         </div>
 
-        {/* Avg Score */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-info text-white'}`}>
             <div className="card-body">
@@ -133,7 +142,7 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh, l
                           {assignment.difficulty_level}
                         </span>
                       </td>
-                      <td>{assignment.target_muscle_group || 'N/A'}</td>
+                      <td>{assignment.target_muscle_group}</td>
                       <td>{assignment.frequency}</td>
                       <td>
                         {assignment.assigned_by_name}<br/>
