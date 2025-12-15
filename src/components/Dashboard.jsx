@@ -1,7 +1,44 @@
+import { useState, useEffect } from 'react';
 import { logProgress } from '../services/api';
 
-function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh }) {
-  
+const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
+
+function Dashboard({ user, weeklyStats, accessibility, onRefresh }) {
+  const [assignments, setAssignments] = useState([]);
+  const [exercises, setExercises] = useState([]);
+
+  useEffect(() => {
+    const loadAssignments = async () => {
+      try {
+        // Fetch assignments for this PWD
+        const assignmentsRes = await fetch(`${API_BASE_URL}/assignments/user/${user.user_id}`);
+        const assignmentsData = await assignmentsRes.json();
+
+        // Fetch all exercises
+        const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
+        const exercisesData = await exercisesRes.json();
+        setExercises(exercisesData);
+
+        // Map exercise details into assignments
+        const assignmentsWithExercise = assignmentsData.map(a => {
+          const exercise = exercisesData.find(e => e.exercise_id === a.exercise_id);
+          return {
+            ...a,
+            exercise_name: exercise?.exercise_name || 'Unknown',
+            difficulty_level: exercise?.difficulty_level || 'Easy',
+            target_muscle_group: exercise?.target_muscle_group || 'N/A',
+          };
+        });
+
+        setAssignments(assignmentsWithExercise);
+      } catch (error) {
+        console.error('Error loading assignments:', error);
+      }
+    };
+
+    loadAssignments();
+  }, [user.user_id]);
+
   const handleLogProgress = async (assignmentId, exerciseName) => {
     const duration = prompt(`Log progress for: ${exerciseName}\n\nDuration (minutes):`);
     if (!duration) return;
@@ -123,9 +160,7 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh })
                 <tbody>
                   {assignments.map((assignment) => (
                     <tr key={assignment.assignment_id}>
-                      <td>
-                        <strong>{assignment.exercise_name}</strong>
-                      </td>
+                      <td><strong>{assignment.exercise_name}</strong></td>
                       <td>
                         <span className={`badge ${
                           assignment.difficulty_level === 'Easy'
@@ -140,8 +175,7 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh })
                       <td>{assignment.target_muscle_group || 'N/A'}</td>
                       <td>{assignment.frequency}</td>
                       <td>
-                        {assignment.assigned_by_name}
-                        <br />
+                        {assignment.assigned_by_name}<br/>
                         <small className="text-muted">({assignment.assigned_by_role})</small>
                       </td>
                       <td>
@@ -152,8 +186,7 @@ function Dashboard({ user, weeklyStats, assignments, accessibility, onRefresh })
                             assignment.exercise_name
                           )}
                         >
-                          <i className="bi bi-check-circle me-1"></i>
-                          Log Progress
+                          <i className="bi bi-check-circle me-1"></i> Log Progress
                         </button>
                       </td>
                     </tr>
