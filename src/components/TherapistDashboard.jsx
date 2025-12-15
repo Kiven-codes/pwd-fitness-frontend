@@ -1,8 +1,3 @@
-// ============================================
-// src/components/TherapistDashboard.jsx
-// Dashboard for Therapist and Caregiver roles
-// ============================================
-
 import { useState, useEffect } from 'react';
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -14,7 +9,6 @@ function TherapistDashboard({ user, accessibility }) {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Assignment form
   const [assignmentForm, setAssignmentForm] = useState({
     pwd_id: '',
     exercise_id: '',
@@ -30,22 +24,33 @@ function TherapistDashboard({ user, accessibility }) {
   const loadData = async () => {
     try {
       setLoading(true);
-      
-      // Load patients assigned to this therapist
-      const patientsRes = await fetch(`${API_BASE_URL}/therapist/${user.id}/patients`);
-      const patientsData = await patientsRes.json();
-      setPatients(patientsData);
 
-      // Load all PWDs for assignment
-      const pwdsRes = await fetch(`${API_BASE_URL}/users/pwds`);
-      if (pwdsRes.ok) {
-        const pwdsData = await pwdsRes.json();
-        setAllPWDs(pwdsData);
+      // Load patients assigned to this therapist
+      const fetchPatients = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/therapist/${therapistId}/patients`);
+    if (!response.ok) throw new Error('Failed to fetch patients');
+    const patients = await response.json();
+    setPatients(patients);
+  } catch (err) {
+    console.error('Failed to fetch patients:', err);
+  }
+};
+
+
+      // Load all users and filter PWDs
+      const usersRes = await fetch(`${API_BASE_URL}/users/all-users`);
+      if (usersRes.ok) {
+        const usersData = await usersRes.json();
+        const pwds = usersData.filter(u => u.role === 'PWD');
+        setAllPWDs(pwds);
+      } else {
+        console.error('Failed to fetch users:', usersRes.status);
       }
 
       // Load exercises
       const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
-      const exercisesData = await exercisesRes.json();
+      const exercisesData = exercisesRes.ok ? await exercisesRes.json() : [];
       setExercises(exercisesData);
 
     } catch (error) {
@@ -57,7 +62,7 @@ function TherapistDashboard({ user, accessibility }) {
 
   const handleAssignExercise = async (e) => {
     e.preventDefault();
-    
+
     if (!assignmentForm.pwd_id || !assignmentForm.exercise_id) {
       alert('Please select both patient and exercise');
       return;
@@ -96,7 +101,7 @@ function TherapistDashboard({ user, accessibility }) {
   const viewPatientProgress = async (patientId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/progress/user/${patientId}/summary`);
-      const data = await response.json();
+      const data = await response.ok ? await response.json() : null;
       setSelectedPatient(data);
     } catch (error) {
       console.error('Error loading patient progress:', error);
@@ -106,32 +111,26 @@ function TherapistDashboard({ user, accessibility }) {
   return (
     <div>
       <h2 className={`mb-4 ${accessibility.largeText ? 'display-5' : ''}`}>
-        <i className="bi bi-clipboard2-pulse me-2"></i>
         {user.role === 'THERAPIST' ? 'Therapist' : 'Caregiver'} Dashboard
       </h2>
 
       <div className="row g-4">
-        {/* Assign Exercise Card */}
+        {/* Assign Exercise */}
         <div className="col-lg-6">
-          <div className={`card h-100 ${accessibility.highContrast ? 'bg-dark border-warning' : ''}`}>
-            <div className="card-header bg-primary text-white">
-              <h5 className="mb-0">
-                <i className="bi bi-plus-circle me-2"></i>
-                Assign Exercise
-              </h5>
-            </div>
+          <div className="card h-100">
+            <div className="card-header bg-primary text-white">Assign Exercise</div>
             <div className="card-body">
               <form onSubmit={handleAssignExercise}>
                 <div className="mb-3">
-                  <label className="form-label">Select Patient (PWD)</label>
+                  <label>Patient (PWD)</label>
                   <select
                     className="form-select"
                     value={assignmentForm.pwd_id}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, pwd_id: e.target.value })}
+                    onChange={e => setAssignmentForm({ ...assignmentForm, pwd_id: e.target.value })}
                     required
                   >
                     <option value="">-- Select Patient --</option>
-                    {allPWDs.map((pwd) => (
+                    {allPWDs.map(pwd => (
                       <option key={pwd.user_id} value={pwd.user_id}>
                         {pwd.name} ({pwd.disability_type})
                       </option>
@@ -140,15 +139,15 @@ function TherapistDashboard({ user, accessibility }) {
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Select Exercise</label>
+                  <label>Exercise</label>
                   <select
                     className="form-select"
                     value={assignmentForm.exercise_id}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, exercise_id: e.target.value })}
+                    onChange={e => setAssignmentForm({ ...assignmentForm, exercise_id: e.target.value })}
                     required
                   >
                     <option value="">-- Select Exercise --</option>
-                    {exercises.map((ex) => (
+                    {exercises.map(ex => (
                       <option key={ex.exercise_id} value={ex.exercise_id}>
                         {ex.exercise_name} ({ex.difficulty_level})
                       </option>
@@ -156,34 +155,34 @@ function TherapistDashboard({ user, accessibility }) {
                   </select>
                 </div>
 
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">Start Date</label>
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label>Start Date</label>
                     <input
                       type="date"
                       className="form-control"
                       value={assignmentForm.start_date}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, start_date: e.target.value })}
+                      onChange={e => setAssignmentForm({ ...assignmentForm, start_date: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="col-md-6 mb-3">
-                    <label className="form-label">End Date (Optional)</label>
+                  <div className="col-md-6">
+                    <label>End Date</label>
                     <input
                       type="date"
                       className="form-control"
                       value={assignmentForm.end_date}
-                      onChange={(e) => setAssignmentForm({ ...assignmentForm, end_date: e.target.value })}
+                      onChange={e => setAssignmentForm({ ...assignmentForm, end_date: e.target.value })}
                     />
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <label className="form-label">Frequency</label>
+                  <label>Frequency</label>
                   <select
                     className="form-select"
                     value={assignmentForm.frequency}
-                    onChange={(e) => setAssignmentForm({ ...assignmentForm, frequency: e.target.value })}
+                    onChange={e => setAssignmentForm({ ...assignmentForm, frequency: e.target.value })}
                   >
                     <option>Daily</option>
                     <option>3x per week</option>
@@ -193,56 +192,32 @@ function TherapistDashboard({ user, accessibility }) {
                   </select>
                 </div>
 
-                <button type="submit" className="btn btn-success w-100">
-                  <i className="bi bi-check-circle me-2"></i>
-                  Assign Exercise
-                </button>
+                <button type="submit" className="btn btn-success w-100">Assign Exercise</button>
               </form>
             </div>
           </div>
         </div>
 
-        {/* My Patients Card */}
+        {/* My Patients */}
         <div className="col-lg-6">
-          <div className={`card h-100 ${accessibility.highContrast ? 'bg-dark border-warning' : ''}`}>
-            <div className="card-header bg-info text-white">
-              <h5 className="mb-0">
-                <i className="bi bi-people me-2"></i>
-                My Patients
-              </h5>
-            </div>
+          <div className="card h-100">
+            <div className="card-header bg-info text-white">My Patients</div>
             <div className="card-body">
               {loading ? (
-                <div className="text-center py-4">
-                  <div className="spinner-border" role="status"></div>
-                </div>
+                <div className="text-center py-4"><div className="spinner-border"></div></div>
               ) : patients.length === 0 ? (
-                <div className="text-center py-4 text-muted">
-                  <i className="bi bi-inbox display-4"></i>
-                  <p className="mt-3">No patients assigned yet</p>
-                </div>
+                <p className="text-muted text-center">No patients assigned yet</p>
               ) : (
                 <div className="list-group">
-                  {patients.map((patient) => (
-                    <div
-                      key={patient.user_id}
-                      className="list-group-item list-group-item-action"
-                    >
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                          <h6 className="mb-1">{patient.name}</h6>
-                          <small className="text-muted">
-                            {patient.disability_type} | Age: {patient.age}
-                          </small>
-                        </div>
-                        <button
-                          className="btn btn-sm btn-outline-primary"
-                          onClick={() => viewPatientProgress(patient.user_id)}
-                        >
-                          <i className="bi bi-graph-up me-1"></i>
-                          View Progress
-                        </button>
+                  {patients.map(patient => (
+                    <div key={patient.user_id} className="list-group-item d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6>{patient.name}</h6>
+                        <small>{patient.disability_type} | Age: {patient.age}</small>
                       </div>
+                      <button className="btn btn-sm btn-outline-primary" onClick={() => viewPatientProgress(patient.user_id)}>
+                        View Progress
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -256,14 +231,10 @@ function TherapistDashboard({ user, accessibility }) {
       {selectedPatient && (
         <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
           <div className="modal-dialog modal-lg">
-            <div className={`modal-content ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : ''}`}>
+            <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Patient Progress Summary</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setSelectedPatient(null)}
-                ></button>
+                <h5 className="modal-title">Patient Progress</h5>
+                <button type="button" className="btn-close" onClick={() => setSelectedPatient(null)}></button>
               </div>
               <div className="modal-body">
                 <div className="row g-3">
@@ -294,11 +265,7 @@ function TherapistDashboard({ user, accessibility }) {
                   <div className="col-md-3">
                     <div className="card text-center bg-info text-white">
                       <div className="card-body">
-                        <h4>
-                          {selectedPatient.avg_progress_score 
-                            ? parseFloat(selectedPatient.avg_progress_score).toFixed(1)
-                            : '0'}
-                        </h4>
+                        <h4>{selectedPatient.avg_progress_score?.toFixed(1) || 0}</h4>
                         <small>Avg Score</small>
                       </div>
                     </div>
@@ -306,13 +273,7 @@ function TherapistDashboard({ user, accessibility }) {
                 </div>
               </div>
               <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setSelectedPatient(null)}
-                >
-                  Close
-                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setSelectedPatient(null)}>Close</button>
               </div>
             </div>
           </div>

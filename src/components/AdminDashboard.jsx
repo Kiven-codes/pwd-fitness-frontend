@@ -35,46 +35,54 @@ function AdminDashboard({ user, accessibility }) {
   }, []);
 
   const loadData = async () => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // Load all users
-      const usersRes = await fetch(`${API_BASE_URL}/users/all`);
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        setUsers(usersData);
+    // Load all users
+    const usersRes = await fetch(`${API_BASE_URL}/users/all`); // ✅ updated route
+    if (usersRes.ok) {
+      const usersData = await usersRes.json();
+      setUsers(usersData);
 
-        // Calculate stats
-        const pwds = usersData.filter(u => u.role === 'PWD').length;
-        const therapists = usersData.filter(u => u.role === 'THERAPIST' || u.role === 'CAREGIVER').length;
-        
-        setStats(prev => ({
-          ...prev,
-          totalUsers: usersData.length,
-          totalPWDs: pwds,
-          totalTherapists: therapists
-        }));
-      }
+      // Calculate stats
+      const pwds = usersData.filter(u => u.role === 'PWD').length;
+      const therapists = usersData.filter(u => u.role === 'THERAPIST' || u.role === 'CAREGIVER').length;
 
-      // Load exercises
-      const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
+      setStats(prev => ({
+        ...prev,
+        totalUsers: usersData.length,
+        totalPWDs: pwds,
+        totalTherapists: therapists
+      }));
+    } else {
+      console.error('Failed to fetch users:', usersRes.status);
+    }
+
+    // Load exercises
+    const exercisesRes = await fetch(`${API_BASE_URL}/exercises`);
+    if (exercisesRes.ok) {
       const exercisesData = await exercisesRes.json();
       setExercises(exercisesData);
       setStats(prev => ({ ...prev, totalExercises: exercisesData.length }));
-
-      // Load assignments count
-      const assignmentsRes = await fetch(`${API_BASE_URL}/assignments/all`);
-      if (assignmentsRes.ok) {
-        const assignmentsData = await assignmentsRes.json();
-        setStats(prev => ({ ...prev, totalAssignments: assignmentsData.length }));
-      }
-
-    } catch (error) {
-      console.error('Error loading admin data:', error);
-    } finally {
-      setLoading(false);
+    } else {
+      console.error('Failed to fetch exercises:', exercisesRes.status);
     }
-  };
+
+    // Load assignments count
+    const assignmentsRes = await fetch(`${API_BASE_URL}/assignments/all`);
+    if (assignmentsRes.ok) {
+      const assignmentsData = await assignmentsRes.json();
+      setStats(prev => ({ ...prev, totalAssignments: assignmentsData.length }));
+    } else {
+      console.error('Failed to fetch assignments:', assignmentsRes.status);
+    }
+
+  } catch (error) {
+    console.error('Error loading admin data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleAddExercise = async (e) => {
     e.preventDefault();
