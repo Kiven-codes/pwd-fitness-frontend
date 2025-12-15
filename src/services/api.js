@@ -1,5 +1,9 @@
 const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
+// ============================================
+// SAFE FETCH
+// ============================================
+
 export const safeFetch = async (url, options = {}) => {
   const response = await fetch(url, options);
 
@@ -49,13 +53,11 @@ export const register = async (userData) =>
 // EXERCISES
 // ============================================
 
-export const getExercises = async () =>
-  safeFetch(`${API_BASE_URL}/exercises`);
+export const getExercises = async () => safeFetch(`${API_BASE_URL}/exercises`);
 
 export const getExerciseById = async (id) =>
   safeFetch(`${API_BASE_URL}/exercises/${id}`);
 
-// Update exercise
 export const updateExercise = async (id, exerciseData) =>
   safeFetch(`${API_BASE_URL}/exercises/${id}`, {
     method: 'PUT',
@@ -63,34 +65,34 @@ export const updateExercise = async (id, exerciseData) =>
     body: JSON.stringify(exerciseData)
   });
 
-// Delete exercise
 export const deleteExercise = async (id) =>
-  safeFetch(`${API_BASE_URL}/exercises/${id}`, {
-    method: 'DELETE'
-  });
+  safeFetch(`${API_BASE_URL}/exercises/${id}`, { method: 'DELETE' });
 
 // ============================================
 // ASSIGNMENTS
 // ============================================
 
-export const getUserAssignments = async (userId, status = 'Active') => {
+export const getUserAssignments = async (userId) => {
   if (!userId) return [];
-  return safeFetch(
-    `${API_BASE_URL}/assignments/user/${userId}?status=${status}`
-  );
+  return safeFetch(`${API_BASE_URL}/assignments/user/${userId}`);
 };
+
+// Fetch all patients (users with role 'PWD')
+export const getPatients = async () => safeFetch(`${API_BASE_URL}/users/all`);
+
+// Assign exercise
+export const assignExercise = async (assignmentData) =>
+  safeFetch(`${API_BASE_URL}/assignments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(assignmentData)
+  });
 
 // ============================================
 // PROGRESS TRACKING
 // ============================================
 
-export const logProgress = async (
-  assignmentId,
-  duration,
-  calories,
-  score,
-  remarks = ''
-) =>
+export const logProgress = async (assignmentId, duration, calories, score, remarks = '') =>
   safeFetch(`${API_BASE_URL}/progress`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -119,9 +121,7 @@ export const getProgressSummary = async (userId) => {
 
 export const getHealthMetrics = async (userId, limit = 5) => {
   if (!userId) return [];
-  return safeFetch(
-    `${API_BASE_URL}/health-metrics/user/${userId}?limit=${limit}`
-  );
+  return safeFetch(`${API_BASE_URL}/health-metrics/user/${userId}?limit=${limit}`);
 };
 
 export const addHealthMetric = async (userId, metricData) =>
@@ -163,7 +163,8 @@ export const loadUserData = async (userId) => {
       assignments: [],
       weeklyStats: {},
       healthMetrics: [],
-      education: []
+      education: [],
+      patients: []
     };
   }
 
@@ -176,25 +177,22 @@ export const loadUserData = async (userId) => {
     }
   };
 
-  const [
-    exercises,
-    assignments,
-    weeklyStats,
-    healthMetrics,
-    education
-  ] = await Promise.all([
-    safeCall(() => getExercises()),
-    safeCall(() => getUserAssignments(userId)),
-    safeCall(() => getWeeklyProgress(userId)),
-    safeCall(() => getHealthMetrics(userId)),
-    safeCall(() => getEducation())
-  ]);
+  const [exercises, assignments, weeklyStats, healthMetrics, education, patients] =
+    await Promise.all([
+      safeCall(() => getExercises()),
+      safeCall(() => getUserAssignments(userId)),
+      safeCall(() => getWeeklyProgress(userId)),
+      safeCall(() => getHealthMetrics(userId)),
+      safeCall(() => getEducation()),
+      safeCall(() => getPatients())
+    ]);
 
   return {
     exercises: exercises || [],
     assignments: assignments || [],
     weeklyStats: weeklyStats || {},
     healthMetrics: healthMetrics || [],
-    education: education || []
+    education: education || [],
+    patients: patients || []
   };
 };
