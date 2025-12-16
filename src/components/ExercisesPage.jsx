@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { deleteExercise, updateExercise } from '../services/api';
-import { Modal, Button, Form } from 'react-bootstrap';
 
 export function ExercisesPage({ exercises: initialExercises, accessibility, user, refreshData }) {
   const [exercises, setExercises] = useState(initialExercises);
