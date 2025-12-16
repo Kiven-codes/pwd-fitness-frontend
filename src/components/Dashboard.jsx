@@ -1,6 +1,14 @@
 import { logProgress } from '../services/api';
 
-function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, onRefresh, loading }) {
+function Dashboard({
+  user,
+  weeklyStats = {},
+  assignments = [],
+  exercises = [],
+  accessibility,
+  onRefresh,
+  loading = false
+}) {
 
   const handleLogProgress = async (assignmentId, exerciseName) => {
     const duration = prompt(`Log progress for: ${exerciseName}\n\nDuration (minutes):`);
@@ -37,7 +45,7 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
     );
   }
 
-  // Merge assignments with exercises
+  // Merge assignments with exercises safely
   const safeAssignments = assignments.map(a => {
     const exercise = exercises.find(e => e.exercise_id === a.exercise_id) || {};
     return {
@@ -62,7 +70,6 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
 
       {/* Stats Cards */}
       <div className="row g-3 mb-4">
-        {/* Weekly Sessions */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-primary text-white'}`}>
             <div className="card-body">
@@ -72,7 +79,6 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
             </div>
           </div>
         </div>
-        {/* Total Minutes */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-success text-white'}`}>
             <div className="card-body">
@@ -82,7 +88,6 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
             </div>
           </div>
         </div>
-        {/* Calories */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-danger text-white'}`}>
             <div className="card-body">
@@ -92,7 +97,6 @@ function Dashboard({ user, weeklyStats, assignments, exercises, accessibility, o
             </div>
           </div>
         </div>
-        {/* Avg Score */}
         <div className="col-md-3">
           <div className={`card text-center h-100 ${accessibility.highContrast ? 'bg-dark border-warning text-warning' : 'bg-info text-white'}`}>
             <div className="card-body">

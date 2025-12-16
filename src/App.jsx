@@ -125,8 +125,10 @@ function App() {
                     user={user}
                     weeklyStats={weeklyStats}
                     assignments={assignments}
+                    exercises={exercises} // ✅ Important fix
                     accessibility={accessibility}
                     onRefresh={refreshData}
+                    loading={false} // optional: add loading indicator if needed
                   />
                 )}
                 {(user.role === 'THERAPIST' || user.role === 'CAREGIVER') && (
