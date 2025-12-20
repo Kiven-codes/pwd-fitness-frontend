@@ -30,7 +30,7 @@ function TherapistDashboard({ user, accessibility }) {
       if (patientsRes.ok) {
         const patientsData = await patientsRes.json();
         setPatients(patientsData);
-        setAllPWDs(patientsData); // also use for dropdown
+        setAllPWDs(patientsData);
       } else {
         console.error('Failed to fetch patients:', patientsRes.status);
       }
@@ -74,7 +74,7 @@ function TherapistDashboard({ user, accessibility }) {
 
       if (!response.ok) throw new Error('Failed to assign exercise');
 
-      alert('✅ Exercise assigned successfully!');
+      alert('Exercise assigned successfully!');
       setAssignmentForm({
         pwd_id: '',
         exercise_id: '',
@@ -84,7 +84,7 @@ function TherapistDashboard({ user, accessibility }) {
       });
       loadData();
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Error: ' + error.message);
     }
   };
 

@@ -86,7 +86,7 @@ function AdminDashboard({ user, accessibility }) {
 
       if (!response.ok) throw new Error('Failed to add exercise');
 
-      alert('✅ Exercise added successfully!');
+      alert('Exercise added successfully!');
       setExerciseForm({
         exercise_name: '',
         description: '',
@@ -97,7 +97,7 @@ function AdminDashboard({ user, accessibility }) {
       loadData();
       setActiveView('exercises');
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Error: ' + error.message);
     }
   };
 
@@ -125,7 +125,7 @@ function AdminDashboard({ user, accessibility }) {
 
       if (!response.ok) throw new Error('Failed to update exercise');
 
-      alert('✅ Exercise updated successfully!');
+      alert('Exercise updated successfully!');
       setEditingExercise(null);
       setExerciseForm({
         exercise_name: '',
@@ -137,7 +137,7 @@ function AdminDashboard({ user, accessibility }) {
       loadData();
       setActiveView('exercises');
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Error: ' + error.message);
     }
   };
 
@@ -156,10 +156,10 @@ function AdminDashboard({ user, accessibility }) {
         throw new Error(error.error || 'Failed to delete exercise');
       }
 
-      alert('✅ Exercise deleted successfully!');
+      alert('Exercise deleted successfully!');
       loadData();
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Error: ' + error.message);
     }
   };
 

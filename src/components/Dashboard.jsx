@@ -28,10 +28,10 @@ function Dashboard({
         parseInt(score),
         'Logged from dashboard'
       );
-      alert('✅ Progress logged successfully!');
+      alert('Progress logged successfully!');
       onRefresh();
     } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Error: ' + error.message);
     }
   };
 

@@ -1,8 +1,6 @@
 const API_BASE_URL = 'https://api-app-8efk.onrender.com/api';
 
-// ============================================
 // SAFE FETCH
-// ============================================
 
 export const safeFetch = async (url, options = {}) => {
   const response = await fetch(url, options);
@@ -27,9 +25,8 @@ export const safeFetch = async (url, options = {}) => {
   return data;
 };
 
-// ============================================
+
 // AUTHENTICATION
-// ============================================
 
 export const login = async (username, password) => {
   const data = await safeFetch(`${API_BASE_URL}/auth/login`, {
@@ -49,9 +46,8 @@ export const register = async (userData) =>
     body: JSON.stringify(userData)
   });
 
-// ============================================
+
 // EXERCISES
-// ============================================
 
 export const getExercises = async () => safeFetch(`${API_BASE_URL}/exercises`);
 
@@ -68,9 +64,8 @@ export const updateExercise = async (id, exerciseData) =>
 export const deleteExercise = async (id) =>
   safeFetch(`${API_BASE_URL}/exercises/${id}`, { method: 'DELETE' });
 
-// ============================================
+
 // ASSIGNMENTS
-// ============================================
 
 export const getUserAssignments = async (userId) => {
   if (!userId) return [];
@@ -89,9 +84,8 @@ export const assignExercise = async (assignmentData) =>
     body: JSON.stringify(assignmentData)
   });
 
-// ============================================
+
 // PROGRESS TRACKING
-// ============================================
 
 export const logProgress = async (assignmentId, duration, calories, score, remarks = '') =>
   safeFetch(`${API_BASE_URL}/progress`, {
@@ -116,9 +110,8 @@ export const getProgressSummary = async (userId) => {
   return safeFetch(`${API_BASE_URL}/progress/user/${userId}/summary`);
 };
 
-// ============================================
+
 // HEALTH METRICS
-// ============================================
 
 export const getHealthMetrics = async (userId, limit = 5) => {
   if (!userId) return [];
@@ -132,9 +125,8 @@ export const addHealthMetric = async (userId, metricData) =>
     body: JSON.stringify(metricData)
   });
 
-// ============================================
+
 // EDUCATION
-// ============================================
 
 export const getEducation = async (category = null) => {
   const url = category
@@ -153,9 +145,8 @@ export const logContentAccess = async (userId, contentId) =>
     body: JSON.stringify({ user_id: userId })
   });
 
-// ============================================
+
 // DASHBOARD DATA LOADER
-// ============================================
 
 export const loadUserData = async (userId) => {
   if (!userId) {

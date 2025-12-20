@@ -1,8 +1,6 @@
 import { addHealthMetric } from '../services/api';
 
 export function HealthMetricsPage({ user, healthMetrics, accessibility, onRefresh }) {
-
-  // ✅ Guard check at the very top
   if (!user) {
     return <p className="text-danger">User not loaded. Please log in first.</p>;
   }
@@ -26,10 +24,10 @@ export function HealthMetricsPage({ user, healthMetrics, accessibility, onRefres
       mobility_score: parseInt(mobility),
       notes
     });
-    alert('✅ Health metric added successfully!');
+    alert('Health metric added successfully!');
     onRefresh();
   } catch (error) {
-    alert('❌ Error: ' + error.message);
+    alert('Error: ' + error.message);
   }
 };
 

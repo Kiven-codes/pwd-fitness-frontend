@@ -11,19 +11,16 @@ export function ExercisesPage({ exercises: initialExercises, accessibility, user
     try {
       setLoadingDelete(exerciseId);
 
-      // Attempt deletion
       await deleteExercise(exerciseId);
 
-      // Remove from UI immediately
       setExercises(prev => prev.filter(e => e.exercise_id !== exerciseId));
 
-      // Optional: refresh backend data in the background
       refreshData?.();
 
-      alert('✅ Exercise deleted successfully!');
+      alert('Exercise deleted successfully!');
     } catch (error) {
       console.error('Delete failed:', error);
-      alert('❌ Error deleting exercise. But it may have already been deleted.');
+      alert('Error deleting exercise. But it may have already been deleted.');
     } finally {
       setLoadingDelete(null);
     }
@@ -68,19 +65,6 @@ export function ExercisesPage({ exercises: initialExercises, accessibility, user
                   <p className="mt-3 mb-0 small">
                     <strong><i className="bi bi-tools me-1"></i>Equipment:</strong> {exercise.equipment_needed}
                   </p>
-                )}
-
-                {user.role === 'ADMIN' && (
-                  <div className="mt-3 d-flex gap-2">
-                    <button className="btn btn-sm btn-primary" onClick={() => handleEdit(exercise)}>Edit</button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(exercise.exercise_id)}
-                      disabled={loadingDelete === exercise.exercise_id}
-                    >
-                      {loadingDelete === exercise.exercise_id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  </div>
                 )}
               </div>
             </div>

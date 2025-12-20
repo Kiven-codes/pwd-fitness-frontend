@@ -22,21 +22,29 @@ function LoginPage({ onLoginSuccess, accessibility, setAccessibility }) {
     role: 'PWD'
   });
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError('');
 
-    try {
-      const user = await login(loginForm.username, loginForm.password);
-      onLoginSuccess(user);
-      speak('Login successful');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const user = await login(loginForm.username, loginForm.password);
+    onLoginSuccess(user);
+
+    // Always speak the greeting message
+    const greetingMessage = `Hello ${user.name || 'User'}, welcome to the P W D Fitness Tracker application.`;
+
+    const utterance = new SpeechSynthesisUtterance(greetingMessage);
+    utterance.lang = 'en-US'; // Set language
+    utterance.pitch = 1; // Set pitch
+    utterance.rate = 1; // Set rate
+    speechSynthesis.speak(utterance); // Speak the greeting regardless of voiceEnabled
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleRegister = async (e) => {
     e.preventDefault();
