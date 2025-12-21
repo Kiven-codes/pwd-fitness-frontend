@@ -22,29 +22,32 @@ function LoginPage({ onLoginSuccess, accessibility, setAccessibility }) {
     role: 'PWD'
   });
 
-const handleLogin = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
 
-  try {
-    const user = await login(loginForm.username, loginForm.password);
-    onLoginSuccess(user);
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    // Always speak the greeting message
-    const greetingMessage = `Hello ${user.name || 'User'}, welcome to the P W D Fitness Tracker application.`;
+    try {
+      const user = await login(loginForm.username, loginForm.password);
+      onLoginSuccess(user);
 
-    const utterance = new SpeechSynthesisUtterance(greetingMessage);
-    utterance.lang = 'en-US'; // Set language
-    utterance.pitch = 1; // Set pitch
-    utterance.rate = 1; // Set rate
-    speechSynthesis.speak(utterance); // Speak the greeting regardless of voiceEnabled
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      // Always speak the greeting message
+      const greetingMessage = `Hello ${user.name || 'User'}, welcome to the P W D Fitness Tracker application.`;
+
+      const utterance = new SpeechSynthesisUtterance(greetingMessage);
+      utterance.lang = 'en-US'; // Set language
+      utterance.pitch = 1; // Set pitch
+      utterance.rate = 1; // Set rate
+      speechSynthesis.speak(utterance); // Speak the greeting regardless of voiceEnabled
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -127,13 +130,22 @@ const handleLogin = async (e) => {
                       <label className={`form-label ${accessibility.largeText ? 'fs-4' : ''}`}>
                         Password
                       </label>
-                      <input
-                        type="password"
-                        className={`form-control ${accessibility.largeText ? 'form-control-lg' : ''}`}
-                        value={loginForm.password}
-                        onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
-                        required
-                      />
+                      <div className="input-group">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          className={`form-control ${accessibility.largeText ? 'form-control-lg' : ''}`}
+                          value={loginForm.password}
+                          onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? "Hide" : "Show"}
+                        </button>
+                      </div>
                     </div>
 
                     <button
@@ -242,13 +254,22 @@ const handleLogin = async (e) => {
 
                     <div className="mb-3">
                       <label className="form-label">Password</label>
-                      <input
-                        type="password"
-                        className="form-control"
-                        value={registerForm.password}
-                        onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-                        required
-                      />
+                      <div className="input-group">
+                        <input
+                          type={showRegisterPassword ? "text" : "password"}
+                          className="form-control"
+                          value={registerForm.password}
+                          onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+                          required
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-outline-secondary"
+                          onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                        >
+                          {showRegisterPassword ? "Hide" : "Show"}
+                        </button>
+                      </div>
                     </div>
 
                     <button
